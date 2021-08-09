@@ -1,5 +1,6 @@
 import React from 'react'
 
+import StateMachineIntro from './StateMachineIntro'
 import WithIntersection from './WithIntersection'
 import WithContext from './WithContext'
 import WithReducer from './WithReducer'
@@ -9,6 +10,9 @@ function App() {
   return (
     <div className='App'>
       <h1>Data Loading Examples</h1>
+
+      <h2>State Machine Intro</h2>
+      <StateMachineIntro />
 
       <h2>Data Loading with Intersection Observer</h2>
       <WithIntersection />
