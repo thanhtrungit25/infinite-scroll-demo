@@ -1,30 +1,39 @@
 import React from 'react'
-
-import StateMachineIntro from './StateMachineIntro'
-import WithIntersection from './WithIntersection'
-import WithContext from './WithContext'
-import WithReducer from './WithReducer'
-import WithStateMachine from './WithStateMachine'
+import Listen from './Listen'
+import Fetcher from './Fetcher'
+import AxiosCancel from './AxiosCancel'
+import FetchCancel from './FetchCancel'
 
 function App() {
+  const [listen, setListen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(true)
+
+  React.useEffect(() => {
+    // Simulate 500ms to check Fetcher effect fetch url with 2s
+    setTimeout(() => {
+      setMounted(false)
+    }, 500)
+  }, [])
+
   return (
     <div className='App'>
-      <h1>Data Loading Examples</h1>
+      <button onClick={() => setListen(!listen)}>
+        {listen ? 'stop' : 'start'} listening
+      </button>
+      {listen ? <Listen /> : null}
+      <hr />
 
-      <h2>State Machine Intro</h2>
-      <StateMachineIntro />
+      <Fetcher url='https://reqres.in/api/users/1?delay=2' />
+      <hr />
 
-      <h2>Data Loading with Intersection Observer</h2>
-      <WithIntersection />
+      {mounted && <Fetcher url='https://reqres.in/api/users/1?delay=2' />}
 
-      <h2>Data Loading with Context</h2>
-      <WithContext />
-
-      <h2>Data Loading with Reducer</h2>
-      <WithReducer />
-
-      <h2>XState Data Loading Services</h2>
-      <WithStateMachine />
+      {mounted && (
+        <>
+          <AxiosCancel url='https://reqres.in/api/users/1?delay=2' />
+          <FetchCancel url='https://reqres.in/api/users/1?delay=2' />
+        </>
+      )}
     </div>
   )
 }
