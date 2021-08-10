@@ -1,31 +1,67 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { HelmetProvider, Helmet } from 'react-helmet-async'
+import torchDark from './torch-dark.svg'
+import torchLight from './torch-light.svg'
 
-import StateMachineIntro from './StateMachineIntro'
-import WithIntersection from './WithIntersection'
-import WithContext from './WithContext'
-import WithReducer from './WithReducer'
-import WithStateMachine from './WithStateMachine'
+const useLocalState = (key, defaultValue) => {
+  const [value, setValue] = React.useState(() => {
+    const storeValue = localStorage.getItem(key)
+    return storeValue === null ? defaultValue : JSON.parse(storeValue)
+  })
+
+  useEffect(() => {
+    const listener = (e) => {
+      if (e.storageArea === localStorage && e.key === key) {
+        console.log('listener', e)
+        setValue(JSON.parse(e.newValue))
+      }
+    }
+
+    window.addEventListener('storage', listener)
+
+    return () => {
+      window.removeEventListener('storage', listener)
+    }
+  }, [key])
+
+  // High order function, setItem to local storage before return new state
+  const setValueInLocalStorage = (newValue) => {
+    setValue((currentValue) => {
+      const result =
+        typeof newValue === 'function' ? newValue(currentValue) : newValue
+      // Set new state to local storage
+      localStorage.setItem(key, JSON.stringify(result))
+      return result
+    })
+  }
+
+  return [value, setValueInLocalStorage]
+}
 
 function App() {
+  const [username, setUsername] = useLocalState('username', '')
+  const [theme, setTheme] = useLocalState('theme', 'light')
+
   return (
-    <div className='App'>
-      <h1>Data Loading Examples</h1>
+    <HelmetProvider>
+      <Helmet>
+        <body data-theme={theme} />
+      </Helmet>
 
-      <h2>State Machine Intro</h2>
-      <StateMachineIntro />
-
-      <h2>Data Loading with Intersection Observer</h2>
-      <WithIntersection />
-
-      <h2>Data Loading with Context</h2>
-      <WithContext />
-
-      <h2>Data Loading with Reducer</h2>
-      <WithReducer />
-
-      <h2>XState Data Loading Services</h2>
-      <WithStateMachine />
-    </div>
+      <button
+        className='toggle-theme'
+        onClick={() =>
+          setTheme((curr) => (curr === 'light' ? 'dark' : 'light'))
+        }
+      >
+        <img
+          src={theme === 'light' ? torchDark : torchLight}
+          alt='toggle theme'
+        />
+      </button>
+      <h1>{theme}</h1>
+      <input value={username} onChange={(e) => setUsername(e.target.value)} />
+    </HelmetProvider>
   )
 }
 
