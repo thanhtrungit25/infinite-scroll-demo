@@ -1,31 +1,55 @@
 import React from 'react'
 
-import StateMachineIntro from './StateMachineIntro'
-import WithIntersection from './WithIntersection'
-import WithContext from './WithContext'
-import WithReducer from './WithReducer'
-import WithStateMachine from './WithStateMachine'
+const MyContext = React.createContext()
+
+// Solution 2, decouple Provider from App component
+const MyProvider = ({ children }) => {
+  const [theme, setTheme] = React.useState('light')
+  const nextTheme = theme === 'light' ? 'dark' : 'light'
+  const value = {
+    theme,
+    nextTheme,
+    toggleTheme: () => {
+      setTheme(nextTheme)
+    },
+  }
+
+  return <MyContext.Provider value={value}>{children}</MyContext.Provider>
+}
 
 function App() {
   return (
-    <div className='App'>
-      <h1>Data Loading Examples</h1>
+    <MyProvider>
+      <DirectChild />
+    </MyProvider>
+  )
+}
 
-      <h2>State Machine Intro</h2>
-      <StateMachineIntro />
+const DirectChild = () => {
+  console.log('DirectChild')
+  return (
+    <nav>
+      <DeeperChild />
+    </nav>
+  )
+}
 
-      <h2>Data Loading with Intersection Observer</h2>
-      <WithIntersection />
+// const DirectChild = React.memo(() => {
+//   console.log('DirectChild')
+//   return (
+//     <nav>
+//       <DeeperChild />
+//     </nav>
+//   )
+// })
 
-      <h2>Data Loading with Context</h2>
-      <WithContext />
-
-      <h2>Data Loading with Reducer</h2>
-      <WithReducer />
-
-      <h2>XState Data Loading Services</h2>
-      <WithStateMachine />
-    </div>
+const DeeperChild = () => {
+  console.log('DeeperChild')
+  const { nextTheme, toggleTheme } = React.useContext(MyContext)
+  return (
+    <p>
+      <button onClick={toggleTheme}>{nextTheme}</button>
+    </p>
   )
 }
 
