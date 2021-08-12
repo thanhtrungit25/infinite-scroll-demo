@@ -20,6 +20,35 @@ const validationSchema = Yup.object().shape({
     .required('Must enter a country'),
 })
 
+function isValidPostalCode(postalCode, country) {
+  let postalCodeRegex
+
+  switch (country) {
+    case 'United States of America':
+      postalCodeRegex = /^([0-9]{5})(?:[-\s]*([0-9]{4}))?$/;
+      break;
+    case 'Canada':
+      postalCodeRegex = /^([A-Z][0-9][A-Z])\s*([0-9][A-Z][0-9])$/;
+      break;
+    default:
+      return true
+  }
+
+  return postalCodeRegex.test(postalCode)
+}
+
+function postalCodeLabel(country) {
+  const postalCodeLabels = {
+    'United States of America': 'Zip Code',
+    'Canada': 'Postal Code'
+  }
+  return postalCodeLabels[country] || 'Postal Code'
+}
+
+function showPostalCode(country) {
+  return ['United States of America', 'Canada'].includes(country)
+}
+
 export default function FormikForm() {
   const [country, setCountry] = React.useState('')
   const [suggestions, setSuggestions] = React.useState([])
@@ -30,8 +59,18 @@ export default function FormikForm() {
         name: '',
         email: '',
         country: '',
+        postalCode: '',
       }}
       validationSchema={validationSchema}
+      validate={values => {
+        let errors = {}
+        // Validate the postalCode conditionally based on the country
+        if (!isValidPostalCode(values.postalCode, values.country)) {
+          errors.postalCode = `${postalCodeLabel(values.country)} invalid`
+        }
+
+        return errors
+      }}
       onSubmit={(values, { setSubmitting, resetForm }) => {
         setSubmitting(true)
 
@@ -99,7 +138,8 @@ export default function FormikForm() {
                 onChange: (_event, { newValue }) => {
                   setCountry(newValue)
                 },
-                className: touched.country && errors.country ? 'has-error' : null
+                className:
+                  touched.country && errors.country ? 'has-error' : null,
               }}
               suggestions={suggestions}
               onSuggestionsFetchRequested={async ({ value }) => {
@@ -147,6 +187,23 @@ export default function FormikForm() {
             />
             <Error touched={touched.country} message={errors.country} />
           </div>
+
+          {showPostalCode(country) ? (
+            <div className='input-row'>
+              <label>{postalCodeLabel(country)}</label>
+              <input
+                type='text'
+                name='postalCode'
+                value={values.postalCode}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={
+                  touched.postalCode && errors.postalCode ? 'has-error' : null
+                }
+              />
+              <Error touched={touched.postalCode} message={errors.postalCode} />
+            </div>
+          ) : null}
 
           <div className='input-row'>
             <button type='submit' disabled={isSubmitting}>
